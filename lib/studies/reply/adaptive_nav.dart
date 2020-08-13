@@ -715,8 +715,9 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
                                     IconButton(
                                       icon: const ImageIcon(
                                         AssetImage(
-                                            '$_iconAssetLocation/twotone_star.png',
-                                            package: _assetsPackage),
+                                          '$_iconAssetLocation/twotone_star.png',
+                                          package: _assetsPackage,
+                                        ),
                                       ),
                                       onPressed: () {},
                                       color: ReplyColors.white50,
@@ -724,8 +725,9 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
                                     IconButton(
                                       icon: const ImageIcon(
                                         AssetImage(
-                                            '$_iconAssetLocation/twotone_delete.png',
-                                            package: _assetsPackage),
+                                          '$_iconAssetLocation/twotone_delete.png',
+                                          package: _assetsPackage,
+                                        ),
                                       ),
                                       onPressed: () {},
                                       color: ReplyColors.white50,
