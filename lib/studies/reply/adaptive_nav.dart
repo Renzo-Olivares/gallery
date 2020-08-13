@@ -646,6 +646,8 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
         child: SizedBox(
           height: kToolbarHeight,
           child: Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               InkWell(
                 borderRadius: const BorderRadius.all(Radius.circular(16)),
@@ -668,7 +670,7 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
                     const SizedBox(width: 10),
                     AnimatedOpacity(
                       opacity: _bottomDrawerVisible ? 0.0 : 1.0,
-                      duration: const Duration(milliseconds: 250),
+                      duration: const Duration(milliseconds: 350),
                       child: Text(
                         _currentDestination,
                         style: Theme.of(context)
@@ -679,6 +681,56 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
                     ),
                   ],
                 ),
+              ),
+              Consumer<EmailStore>(
+                builder: (context, model, child) {
+                  final showSecond = model.currentlySelectedEmailId >= 0;
+
+                  return AnimatedSize(
+                    duration: const Duration(milliseconds: 350),
+                    vsync: this,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 350),
+                      transitionBuilder: (child, animation) => ScaleTransition(
+                        child: child,
+                        scale: animation,
+                      ),
+                      child: showSecond
+                          ? Row(
+                              children: [
+                                IconButton(
+                                  icon: const ImageIcon(
+                                    AssetImage(
+                                        '$_iconAssetLocation/twotone_star.png',
+                                        package: _assetsPackage),
+                                  ),
+                                  onPressed: () {},
+                                  color: ReplyColors.white50,
+                                ),
+                                IconButton(
+                                  icon: const ImageIcon(
+                                    AssetImage(
+                                        '$_iconAssetLocation/twotone_delete.png',
+                                        package: _assetsPackage),
+                                  ),
+                                  onPressed: () {},
+                                  color: ReplyColors.white50,
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.more_vert),
+                                  onPressed: () {},
+                                  color: ReplyColors.white50,
+                                ),
+                              ],
+                            )
+                          : IconButton(
+                              icon: const Icon(Icons.search),
+                              color: ReplyColors.white50,
+                              onPressed: () {},
+                            ),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -692,7 +744,7 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
                 return FloatingActionButton(
                   heroTag: 'Bottom App Bar FAB',
                   child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
+                    duration: const Duration(milliseconds: 350),
                     transitionBuilder: (child, animation) => ScaleTransition(
                       child: child,
                       scale: animation,
