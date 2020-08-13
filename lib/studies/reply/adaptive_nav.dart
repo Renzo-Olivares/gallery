@@ -668,23 +668,30 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
                     const SizedBox(width: 8),
                     const ReplyLogo(),
                     const SizedBox(width: 10),
-                    AnimatedOpacity(
-                      opacity: _bottomDrawerVisible ? 0.0 : 1.0,
-                      duration: const Duration(milliseconds: 350),
-                      child: Text(
-                        _currentDestination,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyText1
-                            .copyWith(color: ReplyColors.blue50),
-                      ),
+                    Consumer<EmailStore>(
+                      builder: (context, model, child) {
+                        final onMailView = model.currentlySelectedEmailId >= 0;
+
+                        return AnimatedOpacity(
+                          opacity:
+                              _bottomDrawerVisible | onMailView ? 0.0 : 1.0,
+                          duration: const Duration(milliseconds: 350),
+                          child: Text(
+                            _currentDestination,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1
+                                .copyWith(color: ReplyColors.blue50),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
               ),
               Consumer<EmailStore>(
                 builder: (context, model, child) {
-                  final showSecond = model.currentlySelectedEmailId >= 0;
+                  final onMailView = model.currentlySelectedEmailId >= 0;
 
                   return AnimatedSize(
                     duration: const Duration(milliseconds: 350),
@@ -695,39 +702,46 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
                         child: child,
                         scale: animation,
                       ),
-                      child: showSecond
-                          ? Row(
-                              children: [
-                                IconButton(
-                                  icon: const ImageIcon(
-                                    AssetImage(
-                                        '$_iconAssetLocation/twotone_star.png',
-                                        package: _assetsPackage),
-                                  ),
-                                  onPressed: () {},
-                                  color: ReplyColors.white50,
-                                ),
-                                IconButton(
-                                  icon: const ImageIcon(
-                                    AssetImage(
-                                        '$_iconAssetLocation/twotone_delete.png',
-                                        package: _assetsPackage),
-                                  ),
-                                  onPressed: () {},
-                                  color: ReplyColors.white50,
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.more_vert),
-                                  onPressed: () {},
-                                  color: ReplyColors.white50,
-                                ),
-                              ],
-                            )
-                          : IconButton(
-                              icon: const Icon(Icons.search),
+                      child: _bottomDrawerVisible
+                          ? IconButton(
+                              key: UniqueKey(),
+                              icon: const Icon(Icons.settings),
                               color: ReplyColors.white50,
                               onPressed: () {},
-                            ),
+                            )
+                          : onMailView
+                              ? Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const ImageIcon(
+                                        AssetImage(
+                                            '$_iconAssetLocation/twotone_star.png',
+                                            package: _assetsPackage),
+                                      ),
+                                      onPressed: () {},
+                                      color: ReplyColors.white50,
+                                    ),
+                                    IconButton(
+                                      icon: const ImageIcon(
+                                        AssetImage(
+                                            '$_iconAssetLocation/twotone_delete.png',
+                                            package: _assetsPackage),
+                                      ),
+                                      onPressed: () {},
+                                      color: ReplyColors.white50,
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.more_vert),
+                                      onPressed: () {},
+                                      color: ReplyColors.white50,
+                                    ),
+                                  ],
+                                )
+                              : IconButton(
+                                  icon: const Icon(Icons.search),
+                                  color: ReplyColors.white50,
+                                  onPressed: () {},
+                                ),
                     ),
                   );
                 },
@@ -740,7 +754,7 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
           ? null
           : Consumer<EmailStore>(
               builder: (context, model, child) {
-                final showEditAsAction = model.currentlySelectedEmailId == -1;
+                final onMailView = model.currentlySelectedEmailId == -1;
                 return FloatingActionButton(
                   heroTag: 'Bottom App Bar FAB',
                   child: AnimatedSwitcher(
@@ -749,7 +763,7 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
                       child: child,
                       scale: animation,
                     ),
-                    child: showEditAsAction
+                    child: onMailView
                         ? Icon(
                             Icons.create,
                             key: UniqueKey(),
