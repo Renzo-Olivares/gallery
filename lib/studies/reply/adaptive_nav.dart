@@ -6,6 +6,8 @@ import 'package:gallery/layout/adaptive.dart';
 import 'package:gallery/studies/reply/colors.dart';
 import 'package:gallery/studies/reply/inbox.dart';
 import 'package:gallery/studies/reply/bottom_drawer.dart';
+import 'package:provider/provider.dart';
+import 'package:gallery/studies/reply/model/email_store.dart';
 
 const _assetsPackage = 'flutter_gallery_assets';
 const _iconAssetLocation = 'reply/icons';
@@ -684,11 +686,31 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
       ),
       floatingActionButton: _bottomDrawerVisible
           ? null
-          : FloatingActionButton(
-              heroTag: 'Bottom App Bar FAB',
-              child: const Icon(Icons.create),
-              onPressed: () {
-                // TODO: Implement onPressed for Bottom App Bar FAB
+          : Consumer<EmailStore>(
+              builder: (context, model, child) {
+                final showEditAsAction = model.currentlySelectedEmailId == -1;
+                return FloatingActionButton(
+                  heroTag: 'Bottom App Bar FAB',
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    transitionBuilder: (child, animation) => ScaleTransition(
+                      child: child,
+                      scale: animation,
+                    ),
+                    child: showEditAsAction
+                        ? Icon(
+                            Icons.create,
+                            key: UniqueKey(),
+                          )
+                        : Icon(
+                            Icons.reply_all,
+                            key: UniqueKey(),
+                          ),
+                  ),
+                  onPressed: () {
+                    // TODO: Implement onPressed for Bottom App Bar FAB
+                  },
+                );
               },
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

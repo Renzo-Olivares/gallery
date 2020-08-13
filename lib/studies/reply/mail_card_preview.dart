@@ -5,6 +5,8 @@ import 'package:gallery/layout/adaptive.dart';
 import 'package:gallery/studies/reply/colors.dart';
 import 'package:gallery/studies/reply/mail_view_page.dart';
 import 'package:gallery/studies/reply/model/email_model.dart';
+import 'package:gallery/studies/reply/model/email_store.dart';
+import 'package:provider/provider.dart';
 
 const _assetsPackage = 'flutter_gallery_assets';
 const _iconAssetLocation = 'reply/icons';
@@ -34,10 +36,15 @@ class MailPreviewCard extends StatelessWidget {
       closedShape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(0)),
       ),
+      openElevation: 0,
       closedElevation: 0,
       closedBuilder: (context, openContainer) {
         return InkWell(
-          onTap: openContainer,
+          onTap: () {
+            Provider.of<EmailStore>(context, listen: false)
+                .currentlySelectedEmailId = id;
+            openContainer.call();
+          },
           child: LayoutBuilder(
             builder: (context, constraints) {
               return ConstrainedBox(
@@ -88,8 +95,10 @@ class MailPreviewCard extends StatelessWidget {
                                       color: ReplyColors.blue600,
                                     ),
                                     SizedBox(width: 20),
-                                    Icon(Icons.more_vert,
-                                        color: ReplyColors.blue700),
+                                    Icon(
+                                      Icons.more_vert,
+                                      color: ReplyColors.blue700,
+                                    ),
                                   ],
                                 ),
                               const SizedBox(width: 20),
