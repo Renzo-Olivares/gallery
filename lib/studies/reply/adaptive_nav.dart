@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:gallery/data/gallery_options.dart';
 import 'package:gallery/l10n/gallery_localizations.dart';
 import 'package:gallery/layout/adaptive.dart';
@@ -389,7 +390,7 @@ class _MobileNav extends StatefulWidget {
 }
 
 class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
-  final GlobalKey _bottomDrawerKey = GlobalKey(debugLabel: 'Bottom Drawer');
+  final _bottomDrawerKey = GlobalKey(debugLabel: 'Bottom Drawer');
   int _destinationsCount;
   AnimationController _drawerController;
   AnimationController _dropArrowController;
