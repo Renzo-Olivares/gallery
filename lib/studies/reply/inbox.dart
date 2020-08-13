@@ -36,7 +36,9 @@ class InboxPage extends StatelessWidget {
                               index < model.emails.length;
                               index++) ...[
                             MailPreviewCard(
-                                id: index, email: model.emails[index]),
+                              id: index,
+                              email: model.emails[index],
+                            ),
                             const SizedBox(height: 4),
                           ],
                           const SizedBox(height: kToolbarHeight),
