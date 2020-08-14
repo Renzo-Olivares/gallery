@@ -691,11 +691,12 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
                     color: Colors.transparent,
                   ),
                 ),
-              Expanded(
-                child: Container(
-                  color: Colors.transparent,
-                  child: _BottomAppBarActionItems(
-                    drawerVisible: _bottomDrawerVisible,
+                Expanded(
+                  child: Container(
+                    color: Colors.transparent,
+                    child: _BottomAppBarActionItems(
+                      drawerVisible: _bottomDrawerVisible,
+                    ),
                   ),
                 ),
               ],
