@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:gallery/data/gallery_options.dart';
 import 'package:gallery/l10n/gallery_localizations.dart';
@@ -9,7 +10,6 @@ import 'package:gallery/studies/reply/inbox.dart';
 import 'package:gallery/studies/reply/bottom_drawer.dart';
 import 'package:gallery/studies/reply/model/email_store.dart';
 import 'package:gallery/studies/reply/profile_avatar.dart';
-import 'package:gallery/studies/reply/model/email_store.dart';
 
 const _assetsPackage = 'flutter_gallery_assets';
 const _iconAssetLocation = 'reply/icons';
@@ -408,6 +408,7 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
   int _destinationsCount;
   AnimationController _drawerController;
   AnimationController _dropArrowController;
+  AnimationController _bottomAppBarController;
   Map<String, int> _destinationsWithIndex;
   String _currentDestination;
 
@@ -432,6 +433,14 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 350),
       vsync: this,
     );
+
+    _bottomAppBarController = AnimationController(
+      vsync: this,
+      duration: kThemeAnimationDuration,
+    );
+
+    _bottomAppBarController.forward();
+
     _destinationsCount = 0;
 
     for (var destination in widget.destinations.keys) {
@@ -456,6 +465,7 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
   void dispose() {
     _drawerController.dispose();
     _dropArrowController.dispose();
+    _bottomAppBarController.dispose();
     super.dispose();
   }
 
@@ -588,77 +598,104 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
     );
   }
 
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification.depth == 0) {
+      if (notification is UserScrollNotification) {
+        final userScroll = notification;
+        switch (userScroll.direction) {
+          case ScrollDirection.forward:
+            _bottomAppBarController.forward();
+            break;
+          case ScrollDirection.reverse:
+            _bottomAppBarController.reverse();
+            break;
+          case ScrollDirection.idle:
+            break;
+        }
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      body: LayoutBuilder(
-        builder: _buildStack,
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: ReplyColors.blue700,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        child: SizedBox(
-          height: kToolbarHeight,
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              InkWell(
-                borderRadius: const BorderRadius.all(Radius.circular(16)),
-                onTap: _toggleBottomDrawerVisibility,
-                child: Row(
-                  children: [
-                    const SizedBox(width: 16),
-                    RotationTransition(
-                      turns: Tween(
-                        begin: 0.0,
-                        end: 1.0,
-                      ).animate(_dropArrowController.view),
-                      child: const Icon(
-                        Icons.arrow_drop_up,
-                        color: ReplyColors.blue50,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const _ReplyLogo(),
-                    const SizedBox(width: 10),
-                    Consumer<EmailStore>(
-                      builder: (context, model, child) {
-                        final onMailView = model.currentlySelectedEmailId >= 0;
-
-                        return AnimatedOpacity(
-                          opacity:
-                              _bottomDrawerVisible | onMailView ? 0.0 : 1.0,
-                          duration: const Duration(milliseconds: 350),
-                          child: Text(
-                            _currentDestination,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText1
-                                .copyWith(color: ReplyColors.blue50),
+    return NotificationListener<ScrollNotification>(
+      onNotification: _handleScrollNotification,
+      child: Scaffold(
+        extendBody: true,
+        body: LayoutBuilder(
+          builder: _buildStack,
+        ),
+        bottomNavigationBar: SizeTransition(
+          sizeFactor: _bottomAppBarController,
+          axisAlignment: -1,
+          child: BottomAppBar(
+            color: ReplyColors.blue700,
+            shape: const CircularNotchedRectangle(),
+            notchMargin: 8,
+            child: SizedBox(
+              height: kToolbarHeight,
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  InkWell(
+                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                    onTap: _toggleBottomDrawerVisibility,
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 16),
+                        RotationTransition(
+                          turns: Tween(
+                            begin: 0.0,
+                            end: 1.0,
+                          ).animate(_dropArrowController.view),
+                          child: const Icon(
+                            Icons.arrow_drop_up,
+                            color: ReplyColors.blue50,
                           ),
-                        );
-                      },
+                        ),
+                        const SizedBox(width: 8),
+                        const _ReplyLogo(),
+                        const SizedBox(width: 10),
+                        Consumer<EmailStore>(
+                          builder: (context, model, child) {
+                            final onMailView =
+                                model.currentlySelectedEmailId >= 0;
+
+                            return AnimatedOpacity(
+                              opacity:
+                                  _bottomDrawerVisible | onMailView ? 0.0 : 1.0,
+                              duration: const Duration(milliseconds: 350),
+                              child: Text(
+                                _currentDestination,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText1
+                                    .copyWith(color: ReplyColors.blue50),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  _BottomAppBarActionItems(drawerVisible: _bottomDrawerVisible),
+                ],
               ),
-              _BottomAppBarActionItems(drawerVisible: _bottomDrawerVisible),
-            ],
+            ),
           ),
         ),
+        floatingActionButton: _bottomDrawerVisible
+            ? null
+            : Consumer<EmailStore>(
+                builder: (context, model, child) {
+                  final onMailView = model.currentlySelectedEmailId == -1;
+                  return _ReplyFab(onMailView: onMailView);
+                },
+              ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
-      floatingActionButton: _bottomDrawerVisible
-          ? null
-          : Consumer<EmailStore>(
-              builder: (context, model, child) {
-                final onMailView = model.currentlySelectedEmailId == -1;
-                return _ReplyFab(onMailView: onMailView);
-              },
-            ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
