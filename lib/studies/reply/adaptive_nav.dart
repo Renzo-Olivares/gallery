@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:gallery/data/gallery_options.dart';
 import 'package:gallery/l10n/gallery_localizations.dart';
 import 'package:gallery/layout/adaptive.dart';
@@ -414,6 +415,7 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
   int _destinationsCount;
   AnimationController _drawerController;
   AnimationController _dropArrowController;
+  AnimationController _bottomAppBarController;
   Map<String, int> _destinationsWithIndex;
   String _currentDestination;
 
@@ -438,6 +440,15 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 350),
       vsync: this,
     );
+
+    _bottomAppBarController = AnimationController(
+      vsync: this,
+      duration: kThemeAnimationDuration,
+    );
+
+    // Initialize with bottom app bar visible
+    _bottomAppBarController.forward();
+
     _destinationsCount = 0;
 
     for (var destination in widget.destinations.keys) {
@@ -547,7 +558,9 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
       overflow: Overflow.visible,
       key: _bottomDrawerKey,
       children: [
-        _MailNavigator(child: mainLayer),
+        _MailNavigator(
+            child: NotificationListener<ScrollNotification>(
+                onNotification: _handleScrollNotification, child: mainLayer)),
         GestureDetector(
           onTap: () {
             _drawerController.reverse();
@@ -594,6 +607,25 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
     );
   }
 
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification.depth == 0) {
+      if (notification is UserScrollNotification) {
+        final userScroll = notification;
+        switch (userScroll.direction) {
+          case ScrollDirection.forward:
+            _bottomAppBarController.forward();
+            break;
+          case ScrollDirection.reverse:
+            _bottomAppBarController.reverse();
+            break;
+          case ScrollDirection.idle:
+            break;
+        }
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -601,66 +633,71 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
       body: LayoutBuilder(
         builder: _buildStack,
       ),
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        child: SizedBox(
-          height: kToolbarHeight,
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              InkWell(
-                borderRadius: const BorderRadius.all(Radius.circular(16)),
-                onTap: _toggleBottomDrawerVisibility,
-                child: Row(
-                  children: [
-                    const SizedBox(width: 16),
-                    RotationTransition(
-                      turns: Tween(
-                        begin: 0.0,
-                        end: 1.0,
-                      ).animate(_dropArrowController.view),
-                      child: const Icon(
-                        Icons.arrow_drop_up,
-                        color: ReplyColors.white50,
+      bottomNavigationBar: SizeTransition(
+        sizeFactor: _bottomAppBarController,
+        axisAlignment: -1,
+        child: BottomAppBar(
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8,
+          child: SizedBox(
+            height: kToolbarHeight,
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                InkWell(
+                  borderRadius: const BorderRadius.all(Radius.circular(16)),
+                  onTap: _toggleBottomDrawerVisibility,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 16),
+                      RotationTransition(
+                        turns: Tween(
+                          begin: 0.0,
+                          end: 1.0,
+                        ).animate(_dropArrowController.view),
+                        child: const Icon(
+                          Icons.arrow_drop_up,
+                          color: ReplyColors.white50,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    const _ReplyLogo(),
-                    const SizedBox(width: 10),
-                    Consumer<EmailStore>(
-                      builder: (context, model, child) {
-                        final onMailView = model.currentlySelectedEmailId >= 0;
+                      const SizedBox(width: 8),
+                      const _ReplyLogo(),
+                      const SizedBox(width: 10),
+                      Consumer<EmailStore>(
+                        builder: (context, model, child) {
+                          final onMailView =
+                              model.currentlySelectedEmailId >= 0;
 
-                        return AnimatedOpacity(
-                          opacity:
-                              _bottomDrawerVisible | onMailView ? 0.0 : 1.0,
-                          duration: const Duration(milliseconds: 350),
-                          child: Text(
-                            _currentDestination,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText1
-                                .copyWith(color: ReplyColors.white50),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                          return AnimatedOpacity(
+                            opacity:
+                                _bottomDrawerVisible | onMailView ? 0.0 : 1.0,
+                            duration: const Duration(milliseconds: 350),
+                            child: Text(
+                              _currentDestination,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyText1
+                                  .copyWith(color: ReplyColors.white50),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Container(
-                  color: Colors.transparent,
+                Expanded(
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: _BottomAppBarActionItems(
-                  drawerVisible: _bottomDrawerVisible,
+                Expanded(
+                  child: _BottomAppBarActionItems(
+                    drawerVisible: _bottomDrawerVisible,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
