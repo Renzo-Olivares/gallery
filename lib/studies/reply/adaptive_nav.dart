@@ -674,14 +674,99 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
   }
 }
 
-class _BottomAppBarActionItems extends StatelessWidget {
+class _BottomAppBarActionItems extends StatefulWidget {
   const _BottomAppBarActionItems({@required this.drawerVisible})
       : assert(drawerVisible != null);
 
   final bool drawerVisible;
 
   @override
+  __BottomAppBarActionItemsState createState() =>
+      __BottomAppBarActionItemsState();
+}
+
+class __BottomAppBarActionItemsState extends State<_BottomAppBarActionItems>
+    with SingleTickerProviderStateMixin {
+  final GlobalKey _menuKey = GlobalKey(debugLabel: 'menu');
+  AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      value: 0,
+      duration: const Duration(milliseconds: 150),
+      reverseDuration: const Duration(milliseconds: 75),
+      vsync: this,
+    )..addStatusListener((status) {
+        setState(() {
+          // setState needs to be called to trigger a rebuild because
+          // the 'HIDE FAB'/'SHOW FAB' button needs to be updated based
+          // the latest value of [_controller.status].
+        });
+      });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    OverlayEntry _overlayEntryBuilder() {
+      var renderBox = _menuKey.currentContext.findRenderObject() as RenderBox;
+      var buttonSize = renderBox.size;
+      var buttonPosition = renderBox.localToGlobal(Offset.zero);
+      final roundedRectangleBorder = const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(4)),
+      );
+
+      return OverlayEntry(
+        builder: (context) {
+          return Positioned(
+            top: buttonPosition.dy + buttonSize.height - 116,
+            right: 4,
+            width: (MediaQuery.of(context).size.width / 2) - 8,
+            bottom: 50,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return FadeScaleTransition(
+                  animation: _controller,
+                  child: child,
+                );
+              },
+              child: Visibility(
+                visible: _controller.status != AnimationStatus.dismissed,
+                child: Material(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? ReplyColors.darkBottomAppBarBackground
+                      : ReplyColors.white50,
+                  shape: roundedRectangleBorder,
+                  elevation: 8,
+                  child: InkWell(
+                    customBorder: roundedRectangleBorder,
+                    onTap: () {},
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 16),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Forward',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText2
+                              .copyWith(fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    OverlayEntry _menuOverlay;
+
     return Consumer<EmailStore>(
       builder: (context, model, child) {
         final onMailView = model.currentlySelectedEmailId >= 0;
@@ -693,7 +778,7 @@ class _BottomAppBarActionItems extends StatelessWidget {
             child: child,
             scale: animation,
           ),
-          child: drawerVisible
+          child: widget.drawerVisible
               ? Align(
                   key: UniqueKey(),
                   alignment: Alignment.centerRight,
@@ -729,8 +814,22 @@ class _BottomAppBarActionItems extends StatelessWidget {
                           color: ReplyColors.white50,
                         ),
                         IconButton(
+                          key: _menuKey,
                           icon: const Icon(Icons.more_vert),
-                          onPressed: () {},
+                          onPressed: () {
+                            _menuOverlay = _overlayEntryBuilder();
+                            if (_controller.status ==
+                                AnimationStatus.completed) {
+//                              print('dismissed');
+//                              print(_controller.status);
+//                              _menuOverlay.remove();
+                              _controller.reverse();
+                            } else {
+//                              print(_controller.status);
+                              _controller.forward();
+                              Overlay.of(context).insert(_menuOverlay);
+                            }
+                          },
                           color: ReplyColors.white50,
                         ),
                       ],
