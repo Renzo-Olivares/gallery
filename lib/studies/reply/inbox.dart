@@ -5,6 +5,15 @@ import 'package:gallery/studies/reply/mail_card_preview.dart';
 import 'package:gallery/studies/reply/model/email_store.dart';
 import 'package:provider/provider.dart';
 
+final Map<String, GlobalKey<AnimatedListState>> inboxKeys = {
+  'Inbox': GlobalKey(),
+  'Starred': GlobalKey(),
+  'Sent': GlobalKey(),
+  'Trash': GlobalKey(),
+  'Spam': GlobalKey(),
+  'Drafts': GlobalKey(),
+};
+
 class InboxPage extends StatelessWidget {
   const InboxPage({Key key, @required this.destination})
       : assert(destination != null),
@@ -27,26 +36,42 @@ class InboxPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: ListView(
+                child: AnimatedList(
+                  key: inboxKeys[destination],
                   padding: EdgeInsetsDirectional.only(
                     start: startPadding,
                     end: endPadding,
                     top: isDesktop ? 28 : 0,
                   ),
-                  children: [
-                    for (int index = 0;
-                        index < model.emails[destination].length;
-                        index++) ...[
-                      MailPreviewCard(
-                        id: index,
-                        email: model.emails[destination][index],
-                        onDelete: () => model.deleteEmail(destination, index),
-                        onStar: () => model.starEmail(destination, index),
-                      ),
-                      const SizedBox(height: 4),
-                    ],
-                    const SizedBox(height: kToolbarHeight),
-                  ],
+                  initialItemCount: model.emails[destination].length,
+                  itemBuilder: (context, index, animation) {
+                    return Column(
+                      children: [
+                        MailPreviewCard(
+                          id: index,
+                          email: model.emails[destination][index],
+                          onDelete: () => model.deleteEmail(destination, index),
+                          onStar: () => model.starEmail(destination, index),
+                          animation: animation,
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                    );
+                  },
+//                  children: [
+//                    for (int index = 0;
+//                        index < model.emails[destination].length;
+//                        index++) ...[
+//                      MailPreviewCard(
+//                        id: index,
+//                        email: model.emails[destination][index],
+//                        onDelete: () => model.deleteEmail(destination, index),
+//                        onStar: () => model.starEmail(destination, index),
+//                      ),
+//                      const SizedBox(height: 4),
+//                    ],
+//                    const SizedBox(height: kToolbarHeight),
+//                  ],
                 ),
               ),
               if (isDesktop) ...[

@@ -11,6 +11,7 @@ import 'package:gallery/studies/reply/bottom_drawer.dart';
 import 'package:gallery/studies/reply/colors.dart';
 import 'package:gallery/studies/reply/compose_page.dart';
 import 'package:gallery/studies/reply/inbox.dart';
+import 'package:gallery/studies/reply/mail_card_preview.dart';
 import 'package:gallery/studies/reply/model/email_store.dart';
 import 'package:gallery/studies/reply/profile_avatar.dart';
 import 'package:provider/provider.dart';
@@ -34,11 +35,13 @@ class _AdaptiveNavState extends State<AdaptiveNav> {
 
   Widget _currentInbox;
 
+  UniqueKey _inboxKey = UniqueKey();
+
   @override
   void initState() {
     super.initState();
     _currentInbox = InboxPage(
-      key: UniqueKey(),
+      key: _inboxKey,
       destination: 'Inbox',
     );
   }
@@ -126,6 +129,10 @@ class _AdaptiveNavState extends State<AdaptiveNav> {
       listen: false,
     );
 
+    if (emailStore.currentlySelectedInbox != destination) {
+      _inboxKey = UniqueKey();
+    }
+
     emailStore.currentlySelectedInbox = destination;
 
     if (emailStore.onMailView) {
@@ -142,7 +149,7 @@ class _AdaptiveNavState extends State<AdaptiveNav> {
     setState(() {
       _selectedIndex = index;
       _currentInbox = InboxPage(
-        key: UniqueKey(),
+        key: _inboxKey,
         destination: destination,
       );
     });
@@ -825,6 +832,21 @@ class _BottomAppBarActionItems extends StatelessWidget {
                               model.currentlySelectedInbox,
                               model.currentlySelectedEmailId,
                             );
+
+                            inboxKeys[model.currentlySelectedInbox]
+                                .currentState
+                                .removeItem(
+                                    model.currentlySelectedEmailId,
+                                    (context, animation) => MailPreviewCard(
+                                          id: model.currentlySelectedEmailId,
+                                          email: model.emails[
+                                                  model.currentlySelectedInbox]
+                                              .elementAt(model
+                                                  .currentlySelectedEmailId),
+                                          onDelete: () {},
+                                          onStar: () {},
+                                          animation: animation,
+                                        ));
                           },
                           color: ReplyColors.white50,
                         ),

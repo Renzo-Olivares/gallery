@@ -2,6 +2,7 @@ import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:gallery/layout/adaptive.dart';
 import 'package:gallery/studies/reply/colors.dart';
+import 'package:gallery/studies/reply/inbox.dart';
 import 'package:gallery/studies/reply/mail_view_page.dart';
 import 'package:gallery/studies/reply/model/email_model.dart';
 import 'package:gallery/studies/reply/model/email_store.dart';
@@ -18,6 +19,7 @@ class MailPreviewCard extends StatelessWidget {
     @required this.email,
     @required this.onDelete,
     @required this.onStar,
+    this.animation,
   })  : assert(id != null),
         assert(email != null),
         super(key: key);
@@ -26,6 +28,7 @@ class MailPreviewCard extends StatelessWidget {
   final Email email;
   final VoidCallback onDelete;
   final VoidCallback onStar;
+  final Animation<double> animation;
 
   @override
   Widget build(BuildContext context) {
@@ -51,62 +54,130 @@ class MailPreviewCard extends StatelessWidget {
           onStar: onStar,
           onDelete: onDelete,
         );
-        final onStarredInbox = Provider.of<EmailStore>(
-              context,
-              listen: false,
-            ).currentlySelectedInbox ==
-            'Starred';
+        final emailStore = Provider.of<EmailStore>(
+          context,
+          listen: false,
+        );
+        final onStarredInbox = emailStore.currentlySelectedInbox == 'Starred';
+        final destination = emailStore.currentlySelectedInbox;
 
-        if (isDesktop) {
-          return mailPreview;
-        } else {
-          return Dismissible(
-            key: ObjectKey(email),
-            dismissThresholds: const {
-              DismissDirection.startToEnd: 0.8,
-              DismissDirection.endToStart: 0.4,
-            },
-            onDismissed: (direction) {
-              switch (direction) {
-                case DismissDirection.endToStart:
-                  if (onStarredInbox) {
-                    onStar();
-                  }
-                  break;
-                case DismissDirection.startToEnd:
-                  onDelete();
-                  break;
-                default:
-              }
-            },
-            background: _DismissibleContainer(
-              icon: 'twotone_delete',
-              backgroundColor: colorScheme.primary,
-              iconColor: ReplyColors.blue50,
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsetsDirectional.only(start: 20),
-            ),
-            confirmDismiss: (direction) async {
-              if (direction == DismissDirection.endToStart) {
+        final dismiss = Dismissible(
+          key: ObjectKey(email),
+          dismissThresholds: const {
+            DismissDirection.startToEnd: 0.8,
+            DismissDirection.endToStart: 0.4,
+          },
+          onDismissed: (direction) {
+            switch (direction) {
+              case DismissDirection.endToStart:
                 if (onStarredInbox) {
-                  return true;
+                  onStar();
                 }
-                onStar();
-                return false;
-              } else {
+                break;
+              case DismissDirection.startToEnd:
+                inboxKeys[destination]
+                    .currentState
+                    .removeItem(id, (context, animation) => const SizedBox());
+                onDelete();
+                break;
+              default:
+            }
+          },
+          background: _DismissibleContainer(
+            icon: 'twotone_delete',
+            backgroundColor: colorScheme.primary,
+            iconColor: ReplyColors.blue50,
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsetsDirectional.only(start: 20),
+          ),
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.endToStart) {
+              if (onStarredInbox) {
                 return true;
               }
-            },
-            secondaryBackground: _DismissibleContainer(
-              icon: 'twotone_star',
-              backgroundColor: colorScheme.secondary,
-              iconColor: ReplyColors.black900,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsetsDirectional.only(end: 20),
-            ),
-            child: mailPreview,
-          );
-        }
+              onStar();
+              return false;
+            } else {
+              return true;
+            }
+          },
+          secondaryBackground: _DismissibleContainer(
+            icon: 'twotone_star',
+            backgroundColor: colorScheme.secondary,
+            iconColor: ReplyColors.black900,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsetsDirectional.only(end: 20),
+          ),
+          child: mailPreview,
+        );
+
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-1, 0),
+            end: const Offset(0, 0),
+          ).animate(animation),
+          child: isDesktop ? mailPreview : dismiss,
+        );
+
+//        if (isDesktop) {
+//          return mailPreview;
+//        } else {
+//          return Dismissible(
+//            key: ObjectKey(email),
+//            dismissThresholds: const {
+//              DismissDirection.startToEnd: 0.8,
+//              DismissDirection.endToStart: 0.4,
+//            },
+//            onDismissed: (direction) {
+//              switch (direction) {
+//                case DismissDirection.endToStart:
+//                  if (onStarredInbox) {
+//                    onStar();
+//                  }
+//                  break;
+//                case DismissDirection.startToEnd:
+//                  inboxKey.currentState.removeItem(
+//                      id,
+//                      (context, animation) => MailPreviewCard(
+//                            id: id,
+//                            email: email,
+//                            onDelete: onDelete,
+//                            onStar: onStar,
+//                            animation: animation,
+//                          ));
+//                  onDelete();
+//                  break;
+//                default:
+//              }
+//            },
+//            background: _DismissibleContainer(
+//              icon: 'twotone_delete',
+//              backgroundColor: colorScheme.primary,
+//              iconColor: ReplyColors.blue50,
+//              alignment: Alignment.centerLeft,
+//              padding: const EdgeInsetsDirectional.only(start: 20),
+//            ),
+//            confirmDismiss: (direction) async {
+//              if (direction == DismissDirection.endToStart) {
+//                if (onStarredInbox) {
+//                  return true;
+//                }
+//                onStar();
+//                return false;
+//              } else {
+//                return true;
+//              }
+//            },
+//            secondaryBackground: _DismissibleContainer(
+//              icon: 'twotone_star',
+//              backgroundColor: colorScheme.secondary,
+//              iconColor: ReplyColors.black900,
+//              alignment: Alignment.centerRight,
+//              padding: const EdgeInsetsDirectional.only(end: 20),
+//            ),
+//            child: mailPreview,
+//          );
+//        }
       },
     );
   }
