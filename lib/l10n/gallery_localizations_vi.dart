@@ -107,7 +107,7 @@ class GalleryLocalizationsVi extends GalleryLocalizations {
   String get rallyDescription => 'Một ứng dụng tài chính cá nhân';
 
   @override
-  String get replyDescription => 'An efficient, focused email app';
+  String get replyDescription => 'A email app';
 
   @override
   String get rallyAccountDataChecking => 'Tài khoản giao dịch';

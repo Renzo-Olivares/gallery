@@ -106,7 +106,7 @@ class GalleryLocalizationsLt extends GalleryLocalizations {
   String get rallyDescription => 'Asmeninių finansų programa';
 
   @override
-  String get replyDescription => 'An efficient, focused email app';
+  String get replyDescription => 'A email app';
 
   @override
   String get rallyAccountDataChecking => 'Tikrinama';

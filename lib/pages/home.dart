@@ -105,16 +105,15 @@ class HomePage extends StatelessWidget {
       _CarouselCard(
         demo: studyDemos['reply'],
         asset: const AssetImage(
-          'assets/studies/reply_card.png',
+          'assets/studies/fortnightly_card.png',
           package: 'flutter_gallery_assets',
         ),
-        assetColor: const Color(0xFF344955),
+        assetColor: Colors.white,
         assetDark: const AssetImage(
-          'assets/studies/reply_card_dark.png',
+          'assets/studies/fortnightly_card_dark.png',
           package: 'flutter_gallery_assets',
         ),
-        assetDarkColor: const Color(0xFF1D2327),
-        textColor: Colors.white,
+        assetDarkColor: const Color(0xFF1F1F1F),
         studyRoute: ReplyApp.homeRoute,
       ),
       _CarouselCard(

@@ -108,7 +108,7 @@ class GalleryLocalizationsUz extends GalleryLocalizations {
   String get rallyDescription => 'Budjetni rejalashtirish uchun ilova';
 
   @override
-  String get replyDescription => 'An efficient, focused email app';
+  String get replyDescription => 'A email app';
 
   @override
   String get rallyAccountDataChecking => 'Hisobraqam';

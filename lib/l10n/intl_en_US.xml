@@ -124,7 +124,7 @@
   <string
     name="replyDescription"
     description="Study description for Reply."
-    >An efficient, focused email app</string>
+    >A email app</string>
   <string
     name="rallyAccountDataChecking"
     description="Name for account made up by user."
