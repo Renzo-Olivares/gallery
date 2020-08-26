@@ -581,7 +581,12 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
       return;
     }
 
-    _bottomDrawerSettings.inboxCanScroll = false;
+//    _bottomDrawerSettings.inboxCanScroll = false;
+
+    Provider.of<BottomDrawerSettings>(
+      context,
+      listen: false,
+    ).inboxCanScroll = false;
 
     _dropArrowController.forward();
     _drawerController.fling(
@@ -610,7 +615,11 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
 
     if (flingVelocity < 0.0) {
       print('fling up');
-      _bottomDrawerSettings.inboxCanScroll = true;
+//      _bottomDrawerSettings.inboxCanScroll = true;
+      Provider.of<BottomDrawerSettings>(
+        context,
+        listen: false,
+      ).inboxCanScroll = true;
       _drawerController.fling(
         velocity: math.max(_kFlingVelocity, -flingVelocity),
       );

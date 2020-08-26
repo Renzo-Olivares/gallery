@@ -38,30 +38,32 @@ class BottomDrawer extends StatelessWidget {
               onNotification: (scrollNotification) {
                 if (scrollNotification.depth == 0) {
                   if (scrollNotification is UserScrollNotification) {
-                    switch (scrollNotification.direction) {
-                      case ScrollDirection.forward:
-                        print('forward');
-                        Provider.of<BottomDrawerSettings>(
-                          context,
-                          listen: false,
-                        ).inboxCanScroll = false;
-                        break;
-                      case ScrollDirection.reverse:
-                        print('backwards');
-                        break;
-                      case ScrollDirection.idle:
-                        print('idle');
-                        break;
+//                    switch (scrollNotification.direction) {
+//                      case ScrollDirection.forward:
+//                        print('forward');
+//                        Provider.of<BottomDrawerSettings>(
+//                          context,
+//                          listen: false,
+//                        ).inboxCanScroll = false;
+//                        break;
+//                      case ScrollDirection.reverse:
+//                        print('backwards');
+//                        break;
+//                      case ScrollDirection.idle:
+//                        print('idle');
+//                        break;
+//                    }
+                    if (scrollNotification.metrics.pixels ==
+                            scrollNotification.metrics.minScrollExtent &&
+                        scrollNotification.direction ==
+                            ScrollDirection.forward) {
+                      print('top edge');
+                      Provider.of<BottomDrawerSettings>(
+                        context,
+                        listen: false,
+                      ).inboxCanScroll = false;
                     }
                   }
-//                  if (scrollNotification.metrics.pixels ==
-//                      scrollNotification.metrics.maxScrollExtent) {
-//                    print('top edge');
-//                    Provider.of<BottomDrawerSettings>(
-//                      context,
-//                      listen: false,
-//                    ).inboxCanScroll = false;
-//                  }
                 }
                 return false;
               },
