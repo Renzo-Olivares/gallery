@@ -11,6 +11,7 @@ import 'package:gallery/studies/reply/bottom_drawer.dart';
 import 'package:gallery/studies/reply/colors.dart';
 import 'package:gallery/studies/reply/compose_page.dart';
 import 'package:gallery/studies/reply/inbox.dart';
+import 'package:gallery/studies/reply/model/bottom_drawer_settings.dart';
 import 'package:gallery/studies/reply/model/email_store.dart';
 import 'package:gallery/studies/reply/profile_avatar.dart';
 import 'package:provider/provider.dart';
@@ -505,6 +506,7 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
   Animation<double> _drawerCurve;
   Animation<double> _dropArrowCurve;
   Animation<double> _bottomAppBarCurve;
+  BottomDrawerSettings _bottomDrawerSettings;
 
   @override
   void initState() {
@@ -551,6 +553,11 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
       curve: Curves.fastOutSlowIn,
       reverseCurve: Curves.fastOutSlowIn.flipped,
     );
+
+    _bottomDrawerSettings = Provider.of<BottomDrawerSettings>(
+      context,
+      listen: false,
+    );
   }
 
   @override
@@ -573,6 +580,8 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
       _dropArrowController.animateTo(0.35, curve: Curves.fastOutSlowIn);
       return;
     }
+
+    _bottomDrawerSettings.inboxCanScroll = false;
 
     _dropArrowController.forward();
     _drawerController.fling(
@@ -600,6 +609,8 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
         details.velocity.pixelsPerSecond.dy / _bottomDrawerHeight;
 
     if (flingVelocity < 0.0) {
+      print('fling up');
+      _bottomDrawerSettings.inboxCanScroll = true;
       _drawerController.fling(
         velocity: math.max(_kFlingVelocity, -flingVelocity),
       );

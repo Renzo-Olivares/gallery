@@ -6,6 +6,7 @@ import 'package:gallery/layout/letter_spacing.dart';
 import 'package:gallery/studies/reply/adaptive_nav.dart';
 import 'package:gallery/studies/reply/colors.dart';
 import 'package:gallery/studies/reply/compose_page.dart';
+import 'package:gallery/studies/reply/model/bottom_drawer_settings.dart';
 import 'package:gallery/studies/reply/model/email_store.dart';
 import 'package:gallery/studies/reply/search_page.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -66,6 +67,9 @@ class ReplyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<EmailStore>.value(value: EmailStore()),
+        ChangeNotifierProvider<BottomDrawerSettings>.value(
+          value: BottomDrawerSettings(),
+        ),
       ],
       child: MaterialApp(
         navigatorKey: rootNavKey,
