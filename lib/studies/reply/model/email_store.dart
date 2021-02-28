@@ -242,11 +242,4 @@ class EmailStore with ChangeNotifier {
     _selectedMailboxPage = mailboxPage;
     notifyListeners();
   }
-
-  bool _onSearchPage = false;
-  bool get onSearchPage => _onSearchPage;
-  set onSearchPage(bool value) {
-    _onSearchPage = value;
-    notifyListeners();
-  }
 }

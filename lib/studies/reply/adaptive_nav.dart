@@ -16,7 +16,6 @@ import 'package:gallery/studies/reply/mailbox_body.dart';
 import 'package:gallery/studies/reply/model/email_model.dart';
 import 'package:gallery/studies/reply/model/email_store.dart';
 import 'package:gallery/studies/reply/profile_avatar.dart';
-import 'package:gallery/studies/reply/search_page.dart';
 import 'package:gallery/studies/reply/waterfall_notched_rectangle.dart';
 import 'package:provider/provider.dart';
 
@@ -246,10 +245,8 @@ class _DesktopNavState extends State<_DesktopNav>
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1340),
-                child: _SharedAxisTransitionSwitcher(
-                  defaultChild: _MailNavigator(
-                    child: MailboxBody(key: widget.inboxKey),
-                  ),
+                child: _MailNavigator(
+                  child: MailboxBody(key: widget.inboxKey),
                 ),
               ),
             ),
@@ -679,34 +676,32 @@ class _MobileNavState extends State<_MobileNav> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return _SharedAxisTransitionSwitcher(
-      defaultChild: Scaffold(
-        extendBody: true,
-        body: LayoutBuilder(
-          builder: _buildStack,
-        ),
-        bottomNavigationBar: Consumer<EmailStore>(
-          builder: (context, model, child) {
-            return _AnimatedBottomAppBar(
-              bottomAppBarController: _bottomAppBarController,
-              bottomAppBarCurve: _bottomAppBarCurve,
-              bottomDrawerVisible: _bottomDrawerVisible,
-              drawerController: _drawerController,
-              dropArrowCurve: _dropArrowCurve,
-              navigationDestinations: widget.destinations,
-              selectedMailbox: model.selectedMailboxPage,
-              toggleBottomDrawerVisibility: _toggleBottomDrawerVisibility,
-            );
-          },
-        ),
-        floatingActionButton: _bottomDrawerVisible
-            ? null
-            : const Padding(
-                padding: EdgeInsetsDirectional.only(bottom: 8),
-                child: _ReplyFab(),
-              ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    return Scaffold(
+      extendBody: true,
+      body: LayoutBuilder(
+        builder: _buildStack,
       ),
+      bottomNavigationBar: Consumer<EmailStore>(
+        builder: (context, model, child) {
+          return _AnimatedBottomAppBar(
+            bottomAppBarController: _bottomAppBarController,
+            bottomAppBarCurve: _bottomAppBarCurve,
+            bottomDrawerVisible: _bottomDrawerVisible,
+            drawerController: _drawerController,
+            dropArrowCurve: _dropArrowCurve,
+            navigationDestinations: widget.destinations,
+            selectedMailbox: model.selectedMailboxPage,
+            toggleBottomDrawerVisibility: _toggleBottomDrawerVisibility,
+          );
+        },
+      ),
+      floatingActionButton: _bottomDrawerVisible
+          ? null
+          : const Padding(
+              padding: EdgeInsetsDirectional.only(bottom: 8),
+              child: _ReplyFab(),
+            ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
@@ -910,10 +905,8 @@ class _BottomAppBarActionItems extends StatelessWidget {
                         icon: const Icon(Icons.search),
                         color: ReplyColors.white50,
                         onPressed: () {
-                          Provider.of<EmailStore>(
-                            context,
-                            listen: false,
-                          ).onSearchPage = true;
+                          mobileMailNavKey.currentState
+                              .pushNamed(ReplyApp.searchRoute);
                         },
                       ),
                     ),
@@ -1062,6 +1055,26 @@ class _MailNavigator extends StatefulWidget {
 class _MailNavigatorState extends State<_MailNavigator> {
   static const inboxRoute = '/reply/inbox';
 
+  static Route createInboxRoute(RouteSettings settings, Widget currentInbox) {
+    return PageRouteBuilder<void>(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          _FadeThroughTransitionSwitcher(
+        fillColor: Theme.of(context).scaffoldBackgroundColor,
+        child: currentInbox,
+      ),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return SharedAxisTransition(
+          fillColor: Theme.of(context).cardColor,
+          animation: animation,
+          secondaryAnimation: secondaryAnimation,
+          transitionType: SharedAxisTransitionType.scaled,
+          child: child,
+        );
+      },
+      settings: settings,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = isDisplayDesktop(context);
@@ -1073,18 +1086,13 @@ class _MailNavigatorState extends State<_MailNavigator> {
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case inboxRoute:
-            return MaterialPageRoute<void>(
-              builder: (context) {
-                return _FadeThroughTransitionSwitcher(
-                  fillColor: Theme.of(context).scaffoldBackgroundColor,
-                  child: widget.child,
-                );
-              },
-              settings: settings,
-            );
+            return createInboxRoute(settings, widget.child);
             break;
           case ReplyApp.composeRoute:
             return ReplyApp.createComposeRoute(settings);
+            break;
+          case ReplyApp.searchRoute:
+            return ReplyApp.createSearchRoute(settings);
             break;
         }
         return null;
@@ -1147,10 +1155,6 @@ class _ReplyFabState extends State<_ReplyFab>
         );
         final tooltip = onMailView ? 'Reply' : 'Compose';
         final onPressed = () {
-          var onSearchPage = Provider.of<EmailStore>(
-            context,
-            listen: false,
-          ).onSearchPage;
           // Navigator does not have an easy way to access the current
           // route when using a GlobalKey to keep track of NavigatorState.
           // We can use [Navigator.popUntil] in order to access the current
@@ -1161,7 +1165,8 @@ class _ReplyFabState extends State<_ReplyFab>
           desktopMailNavKey.currentState.popUntil(
             (route) {
               var currentRoute = route.settings.name;
-              if (currentRoute != ReplyApp.composeRoute && !onSearchPage) {
+              if (currentRoute != ReplyApp.composeRoute &&
+                  currentRoute != ReplyApp.searchRoute) {
                 desktopMailNavKey.currentState
                     .restorablePushNamed(ReplyApp.composeRoute);
               }
@@ -1270,36 +1275,6 @@ class _FadeThroughTransitionSwitcher extends StatelessWidget {
         );
       },
       child: child,
-    );
-  }
-}
-
-class _SharedAxisTransitionSwitcher extends StatelessWidget {
-  const _SharedAxisTransitionSwitcher({
-    @required this.defaultChild,
-  }) : assert(defaultChild != null);
-
-  final Widget defaultChild;
-
-  @override
-  Widget build(BuildContext context) {
-    return Selector<EmailStore, bool>(
-      selector: (context, emailStore) => emailStore.onSearchPage,
-      builder: (context, onSearchPage, child) {
-        return PageTransitionSwitcher(
-          reverse: !onSearchPage,
-          transitionBuilder: (child, animation, secondaryAnimation) {
-            return SharedAxisTransition(
-              fillColor: Theme.of(context).cardColor,
-              animation: animation,
-              secondaryAnimation: secondaryAnimation,
-              transitionType: SharedAxisTransitionType.scaled,
-              child: child,
-            );
-          },
-          child: onSearchPage ? const SearchPage() : defaultChild,
-        );
-      },
     );
   }
 }

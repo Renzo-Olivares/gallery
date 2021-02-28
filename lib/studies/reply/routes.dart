@@ -4,3 +4,4 @@
 
 const String homeRoute = '/reply';
 const String composeRoute = '/reply/compose';
+const String searchRoute = '/reply/search';

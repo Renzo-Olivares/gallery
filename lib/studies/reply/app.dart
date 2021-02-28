@@ -9,6 +9,7 @@ import 'package:gallery/studies/reply/compose_page.dart';
 import 'package:gallery/studies/reply/model/email_model.dart';
 import 'package:gallery/studies/reply/model/email_store.dart';
 import 'package:gallery/studies/reply/routes.dart' as routes;
+import 'package:gallery/studies/reply/search_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -19,6 +20,24 @@ class ReplyApp extends StatefulWidget {
 
   static const String homeRoute = routes.homeRoute;
   static const String composeRoute = routes.composeRoute;
+  static const String searchRoute = routes.searchRoute;
+
+  static Route createSearchRoute(RouteSettings settings) {
+    return PageRouteBuilder<void>(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const SearchPage(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return SharedAxisTransition(
+          fillColor: Theme.of(context).cardColor,
+          animation: animation,
+          secondaryAnimation: secondaryAnimation,
+          transitionType: SharedAxisTransitionType.scaled,
+          child: child,
+        );
+      },
+      settings: settings,
+    );
+  }
 
   static Route createComposeRoute(RouteSettings settings) {
     return PageRouteBuilder<void>(
@@ -91,9 +110,6 @@ class _ReplyAppState extends State<ReplyApp> with RestorationMixin {
                 settings: settings,
               );
               break;
-            case ReplyApp.composeRoute:
-              return ReplyApp.createComposeRoute(settings);
-              break;
           }
           return null;
         },
@@ -113,7 +129,6 @@ class _RestorableEmailState extends RestorableListenable<EmailStore> {
     final appState = EmailStore();
     final appData = Map<String, dynamic>.from(data as Map);
     appState.selectedEmailId = appData['selectedEmailId'] as int;
-    appState.onSearchPage = appData['onSearchPage'] as bool;
 
     // The index of the MailboxPageType enum is restored.
     final mailboxPageIndex = appData['selectedMailboxPage'] as int;
@@ -137,7 +152,6 @@ class _RestorableEmailState extends RestorableListenable<EmailStore> {
       // The index of the MailboxPageType enum is stored, since the value
       // has to be serializable.
       'selectedMailboxPage': value.selectedMailboxPage.index,
-      'onSearchPage': value.onSearchPage,
       'starredEmailIds': value.starredEmailIds.toList(),
       'trashEmailIds': value.trashEmailIds.toList(),
     };
