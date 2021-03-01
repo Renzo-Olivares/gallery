@@ -108,7 +108,7 @@ class MailboxBody extends StatelessWidget {
                         key: const ValueKey('ReplySearch'),
                         icon: const Icon(Icons.search),
                         onPressed: () {
-                          desktopMailNavKey.currentState.pushNamed(
+                          desktopMailNavKey.currentState.restorablePushNamed(
                             ReplyApp.searchRoute,
                           );
                         },

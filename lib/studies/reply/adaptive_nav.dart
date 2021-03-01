@@ -906,7 +906,7 @@ class _BottomAppBarActionItems extends StatelessWidget {
                         color: ReplyColors.white50,
                         onPressed: () {
                           mobileMailNavKey.currentState
-                              .pushNamed(ReplyApp.searchRoute);
+                              .restorablePushNamed(ReplyApp.searchRoute);
                         },
                       ),
                     ),
